@@ -37,5 +37,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      scraper:
+        condition: service_completed_successfully
     ports:
       - 8080:5000
