@@ -1,0 +1,41 @@
+version: '3'
+services:
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+      # POSTGRES_HOST_AUTH_METHOD: trust
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  scraper:
+    build:
+      context: sreality/
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    depends_on:
+      db:
+        condition: service_healthy
+  web:
+    build:
+      context: web/
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 8080:5000
